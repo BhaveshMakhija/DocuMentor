@@ -1,7 +1,8 @@
-def run_evaluations():
-    """
-    Runs automated checks utilizing ragas library against a test-suite locally.
-    Outputs metrics on faithfulness, relevance, and precision.
-    """
-    # ... placeholder
-    return {"status": "Evaluation simulated", "faithfulness": 0.95}
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from evaluation.evaluation import run_evaluations as run_ragas
+
+def run_evaluations(test_data: list):
+    return run_ragas(test_data)

@@ -1,22 +1,32 @@
 import React from 'react';
 
 const AnswerDisplay = ({ answer, citations }) => {
+    if (!answer) return null;
+
     return (
-        <div className="answer-display">
-            <h3>Answer</h3>
-            <p>{answer || "No answer yet."}</p>
+        <section className="glass-panel answer-section">
+            <div className="answer-text">
+                <strong>Answer:</strong>
+                <p>{answer}</p>
+            </div>
             
             {citations && citations.length > 0 && (
-                <div className="citations">
-                    <h4>Citations:</h4>
-                    <ul>
-                        {citations.map((c, idx) => (
-                            <li key={idx}>[{c.source}] - {c.content.substring(0, 100)}...</li>
-                        ))}
-                    </ul>
+                <div className="citations-list">
+                    <h3>Sources Referenced</h3>
+                    {citations.map((c, idx) => (
+                        <div key={idx} className="citation-card">
+                            <div className="citation-source">
+                                [{c.doc_id.substring(0, 8)}...] {c.source}
+                                {c.score != null && ` (Relevance: ${c.score.toFixed(2)})`}
+                            </div>
+                            <div className="citation-content">
+                                "{c.content.substring(0, 200)}..."
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
-        </div>
+        </section>
     );
 };
 

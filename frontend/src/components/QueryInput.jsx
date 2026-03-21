@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const QueryInput = ({ onSearch }) => {
+const QueryInput = ({ onSearch, disabled }) => {
     const [query, setQuery] = useState('');
 
     const handleSubmit = (e) => {
@@ -9,14 +9,16 @@ const QueryInput = ({ onSearch }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="query-input">
+        <form onSubmit={handleSubmit} className="query-form glass-panel">
             <input 
                 type="text" 
-                placeholder="Ask about your documents..." 
+                className="query-input"
+                placeholder="Ask a question about your documents..." 
                 value={query}
                 onChange={e => setQuery(e.target.value)}
+                disabled={disabled}
             />
-            <button type="submit">Search</button>
+            <button type="submit" className="submit-btn" disabled={disabled || !query.trim()}>Search</button>
         </form>
     );
 };

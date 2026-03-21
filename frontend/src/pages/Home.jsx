@@ -2,26 +2,55 @@ import React, { useState } from 'react';
 import QueryInput from '../components/QueryInput';
 import AnswerDisplay from '../components/AnswerDisplay';
 import DocumentUpload from '../components/DocumentUpload';
+import { queryBackend, ingestDocument } from '../services/api';
 
 const Home = () => {
     const [result, setResult] = useState(null);
+    const [status, setStatus] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSearch = async (query) => {
-        // ... Placeholder API call
-        setResult({ answer: `You asked: ${query}`, citations: [] });
+        setLoading(true);
+        setStatus('');
+        setResult(null);
+        try {
+            const data = await queryBackend(query);
+            setResult(data);
+        } catch (e) {
+            setStatus('Error: ' + e.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleUpload = async (file) => {
-        // ... Placeholder logic
-        alert("Simulated ingestion of " + file.name);
+        setLoading(true);
+        setStatus(`Uploading ${file.name}...`);
+        try {
+            const data = await ingestDocument(file);
+            setStatus(`Success: ${data.message} (${data.num_chunks} chunks)`);
+        } catch (e) {
+            setStatus('Error: ' + e.message);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
-        <div className="home-container">
-            <h1>DocuMentor Dashboard</h1>
-            <DocumentUpload onUpload={handleUpload} />
-            <QueryInput onSearch={handleSearch} />
-            <AnswerDisplay answer={result?.answer} citations={result?.citations} />
+        <div className="app-container">
+            <header className="header">
+                <h1>DocuMentor</h1>
+                <p>Your domain-specific AI assistant, powered by RAG</p>
+            </header>
+
+            <main>
+                <DocumentUpload onUpload={handleUpload} />
+                <QueryInput onSearch={handleSearch} disabled={loading} />
+                
+                {status && <div className="status-msg">{status}</div>}
+                
+                <AnswerDisplay answer={result?.answer} citations={result?.citations} />
+            </main>
         </div>
     );
 };

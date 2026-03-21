@@ -1,8 +1,9 @@
-def rerank_documents(query: str, documents: list):
-    """
-    Takes initial documents and ranks them intelligently using 
-    - Cohere via keys.json OR 
-    - local SentenceTransformers cross-encoder.
-    """
-    # ... placeholder
-    return documents
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+from reranking.reranking import rerank
+
+def rerank_documents(query: str):
+    retriever = rerank()
+    return retriever.invoke(query)

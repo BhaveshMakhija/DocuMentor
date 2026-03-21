@@ -1,12 +1,27 @@
-// Handle all fetch routines pointing to local FastAPI implementation
-// Usually localhost:8000
-
 export const queryBackend = async (query) => {
-    // ... Placeholder fetch Logic against /query route
-    return {};
+    const res = await fetch('http://localhost:8000/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Search failed");
+    }
+    return res.json();
 };
 
-export const ingestDocument = async (fileData) => {
-    // ... Placeholder file POST against /ingest endpoint
-    return {};
+export const ingestDocument = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('http://localhost:8000/ingest', {
+        method: 'POST',
+        body: formData,
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Upload failed");
+    }
+    return res.json();
 };

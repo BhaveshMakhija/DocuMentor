@@ -1,10 +1,15 @@
+import sys
+import os
+
+# Ensure backend imports work
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import json
-import os
 
-from routes import query, ingest, health
+from backend.routes import query, ingest, health
 
 # 1. Initialize FastAPI app
 app = FastAPI(title="DocuMentor API", version="1.0.0")
@@ -28,10 +33,12 @@ KEYS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', '
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', 'config.json')
 
 def load_config():
-    # Helper to load JSON config cleanly
-    pass
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH, "r") as f:
+            return json.load(f)
+    return {}
 
 if __name__ == "__main__":
     # Start the local uvicorn server
     # Usage: python backend/main.py OR uvicorn backend.main:app --reload
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True)

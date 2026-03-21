@@ -1,13 +1,34 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, HTTPException
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from backend.utils.file_utils import save_temp_file
+from ingestion.ingestion import process_and_chunk
+from indexing.indexing import index_documents
 
 router = APIRouter()
 
 @router.post("/ingest")
 async def ingest_document(file: UploadFile = File(...)):
-    """
-    Endpoint to ingest a new PDF or Text document locally.
-    1. Save file to disk temporarily using backend/utils/file_utils.py.
-    2. Read and parse text chunks (ingestion).
-    3. Push chunks to Vector and BM25 local indices (indexing).
-    """
-    return {"status": "success", "message": f"Placeholder: ingested {file.filename}"}
+    if file.filename.split(".")[-1].lower() not in ["pdf", "txt", "md"]:
+        raise HTTPException(status_code=400, detail="Only PDF, TXT, and MD files are supported.")
+        
+    try:
+        temp_path = save_temp_file(file)
+        
+        chunks = process_and_chunk(temp_path, file.filename)
+        if not chunks:
+            raise HTTPException(status_code=400, detail="Empty document or failed to parse.")
+            
+        index_documents(chunks)
+        
+        os.remove(temp_path)
+        
+        return {
+            "status": "success", 
+            "message": f"Successfully ingested {file.filename}",
+            "num_chunks": len(chunks)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

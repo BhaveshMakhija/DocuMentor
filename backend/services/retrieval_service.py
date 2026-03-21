@@ -1,9 +1,12 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+from retrieval.retrieval import hybrid_search
+
 def retrieve_documents(query: str):
-    """
-    Service layer interacting with indexing/ and retrieval/ modules.
-    - Fetch from Vector DB
-    - Fetch from Elasticsearch BM25 OR local PyBM25
-    - Return combined top-k documents
-    """
-    # ... placeholder
-    return []
+    retriever = hybrid_search()
+    return retriever.invoke(query)
+    
+def get_hybrid_retriever():
+    return hybrid_search()
