@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+python-multipart
+# AI tools below
+langchain
+langchain-community
+langchain-openai
+faiss-cpu
+sentence-transformers
+pydantic
+openai
+tiktoken
+pdfplumber
+ragas
+# Local BM25 fallback to Elasticsearch or standard indexers.
+rank_bm25

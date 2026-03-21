@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Node / React
+node_modules/
+build/
+dist/
+.vite/
+
+# Logs
+*.log
+
+# Databases / Cache
+*.db
+*.sqlite
+data/faiss_index/
+
+# Secrets and API Keys
+configs/keys.json
+config/keys.json
+keys.json
+
+# OS files
+.DS_Store
+Thumbs.db
