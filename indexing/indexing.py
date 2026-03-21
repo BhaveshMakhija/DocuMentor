@@ -19,26 +19,36 @@ def load_config():
     return {}
 
 def get_embeddings():
-    ks = load_keys(); cfg = load_config()
+    cfg = load_config()
     from langchain_community.embeddings import HuggingFaceEmbeddings
-    if ks.get("OPENAI_API_KEY") and not cfg.get("use_local_embeddings", True):
-        try:
-            from langchain_openai import OpenAIEmbeddings
-            return OpenAIEmbeddings(api_key=ks.get("OPENAI_API_KEY"))
-        except ImportError: pass
     return HuggingFaceEmbeddings(model_name=cfg.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2"))
 
 class ElasticsearchBM25:
     def __init__(self):
         self.url = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
         self.index_name = "documentor_bm25"
-        self.client = Elasticsearch(self.url)
-        self.retriever = ElasticSearchBM25Retriever(client=self.client, index_name=self.index_name)
+        try:
+            self.client = Elasticsearch(self.url)
+            if self.client.ping():
+                self.retriever = ElasticSearchBM25Retriever(client=self.client, index_name=self.index_name)
+            else:
+                self.client = None; self.retriever = None
+        except Exception:
+            self.client = None; self.retriever = None
+
     def add_documents(self, documents: List[Document]):
-        ts = [d.page_content for d in documents]; ms = [d.metadata for d in documents]
-        if ts: self.retriever.add_texts(ts, metadatas=ms)
+        if not self.retriever or not documents: return
+        ts = [d.page_content for d in documents]
+        # In current LangChain versions, ElasticSearchBM25Retriever.add_texts does not support metadata directly.
+        # We index the texts; for richer metadata support, we'd use ElasticsearchStore.
+        try:
+            self.retriever.add_texts(ts)
+        except Exception as e:
+            print(f"Elasticsearch indexing failed: {str(e)}")
+
     def as_retriever(self, top_k: int = 10):
-        return ElasticSearchBM25Retriever(client=self.client, index_name=self.index_name)
+        if not self.retriever: return None
+        return self.retriever
 
 class FaissVectorStore:
     def __init__(self):

@@ -13,13 +13,16 @@ router = APIRouter()
 @router.post("/query", response_model=QueryResponse)
 async def query_documents(request: QueryRequest):
     try:
-        answer, citations = generate_answer(request.query)
+        answer, citations, info = generate_answer(request.query)
         cit_models = [CitationModel(
             doc_id=c.get("doc_id", "Unknown"),
             source=c.get("source", "Unknown"),
             content=c.get("content", ""),
             score=c.get("score")
         ) for c in citations]
-        return QueryResponse(answer=answer, citations=cit_models)
+        # Wrap process info if it exists
+        from backend.models.request_models import RAGProcessInfo
+        proc = RAGProcessInfo(**info) if info else None
+        return QueryResponse(answer=answer, citations=cit_models, process_info=proc)
     except Exception as e:
-        return QueryResponse(answer=f"Error processing: {str(e)}", citations=[])
+        return QueryResponse(answer=f"Error processing: {str(e)}", citations=[], process_info=None)

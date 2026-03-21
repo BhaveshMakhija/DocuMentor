@@ -1,8 +1,12 @@
 import React from 'react';
 import Home from './pages/Home';
-import './styles/main.css';
 
 function App() {
-  return (<div className="App"><Home /></div>);
+  return (
+    <div className="bg-black text-white min-h-screen">
+      <Home />
+    </div>
+  );
 }
+
 export default App;

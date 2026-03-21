@@ -11,6 +11,8 @@ from indexing.indexing import index_documents
 
 router = APIRouter()
 
+import traceback
+
 @router.post("/ingest")
 async def ingest_document(file: UploadFile = File(...)):
     if file.filename.split(".")[-1].lower() not in ["pdf", "txt", "md"]:
@@ -22,4 +24,5 @@ async def ingest_document(file: UploadFile = File(...)):
         os.remove(temp_path)
         return {"status": "success", "message": f"Ingested {file.filename}", "num_chunks": len(chunks)}
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

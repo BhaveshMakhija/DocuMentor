@@ -11,6 +11,13 @@ def load_config():
 
 def hybrid_search():
     cfg = load_config(); k = cfg.get("top_k_retrieval", 10)
-    kr = ElasticsearchBM25().as_retriever(top_k=k); vr = FaissVectorStore().as_retriever(top_k=k)
+    kr = ElasticsearchBM25().as_retriever(top_k=k)
+    vr = FaissVectorStore().as_retriever(top_k=k)
     if not vr: raise ValueError("FAISS not found.")
-    return EnsembleRetriever(retrievers=[kr, vr], weights=[0.5, 0.5])
+    if kr: 
+        try:
+            # We return the ensemble only if both are present
+            return EnsembleRetriever(retrievers=[kr, vr], weights=[0.5, 0.5])
+        except Exception: 
+            return vr
+    return vr
