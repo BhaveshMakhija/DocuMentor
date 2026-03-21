@@ -1,26 +1,11 @@
 import React, { useState } from 'react';
-
 const QueryInput = ({ onSearch, disabled }) => {
-    const [query, setQuery] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSearch(query);
-    };
-
+    const [q, setQ] = useState('');
     return (
-        <form onSubmit={handleSubmit} className="query-form glass-panel">
-            <input 
-                type="text" 
-                className="query-input"
-                placeholder="Ask a question about your documents..." 
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                disabled={disabled}
-            />
-            <button type="submit" className="submit-btn" disabled={disabled || !query.trim()}>Search</button>
+        <form onSubmit={e => {e.preventDefault(); onSearch(q)}} className="query-form glass-panel">
+            <input className="query-input" placeholder="Ask anything..." value={q} onChange={e => setQ(e.target.value)} disabled={disabled}/>
+            <button type="submit" className="submit-btn" disabled={disabled || !q.trim()}>Ask</button>
         </form>
     );
 };
-
 export default QueryInput;

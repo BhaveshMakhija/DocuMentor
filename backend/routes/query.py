@@ -2,7 +2,9 @@ from fastapi import APIRouter
 import sys
 import os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path: sys.path.append(PROJECT_ROOT)
+
 from backend.models.request_models import QueryRequest, QueryResponse, CitationModel
 from backend.services.generation_service import generate_answer
 
@@ -12,18 +14,12 @@ router = APIRouter()
 async def query_documents(request: QueryRequest):
     try:
         answer, citations = generate_answer(request.query)
-        
-        cit_models = []
-        for c in citations:
-            cit_models.append(CitationModel(
-                doc_id=c.get("doc_id", "Unknown"),
-                source=c.get("source", "Unknown"),
-                content=c.get("content", ""),
-                score=c.get("score")
-            ))
-            
+        cit_models = [CitationModel(
+            doc_id=c.get("doc_id", "Unknown"),
+            source=c.get("source", "Unknown"),
+            content=c.get("content", ""),
+            score=c.get("score")
+        ) for c in citations]
         return QueryResponse(answer=answer, citations=cit_models)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return QueryResponse(answer=f"Error processing query: {str(e)}", citations=[])
+        return QueryResponse(answer=f"Error processing: {str(e)}", citations=[])

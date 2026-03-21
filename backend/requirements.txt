@@ -2,15 +2,25 @@ fastapi
 uvicorn
 python-multipart
 # AI tools below
-langchain
+langchain>=0.1.0
+langchain-core
 langchain-community
 langchain-openai
+langchain-elasticsearch
+elasticsearch
 faiss-cpu
 sentence-transformers
-pydantic
+pydantic>=2.0.0
 openai
 tiktoken
 pdfplumber
 ragas
-# Local BM25 fallback to Elasticsearch or standard indexers.
 rank_bm25
+cohere
+python-dotenv
+pandas
+datasets
+# Development
+pytest
+httpx
+pytest-asyncio
