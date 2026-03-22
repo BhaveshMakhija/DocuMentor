@@ -1,4 +1,4 @@
-# DocuMentor Backend Main - Triggering Reload
+# DocuMentor API Main
 import sys
 import os
 import json
@@ -14,7 +14,7 @@ if CUR_DIR not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from backend.routes import health, query, ingest
+from api.routes import health, query, ingest, monitoring, documents
 
 app = FastAPI(title="DocuMentor API", version="1.0.0")
 
@@ -31,8 +31,10 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(query.router)
 app.include_router(ingest.router)
+app.include_router(monitoring.router)
+app.include_router(documents.router)
 
 if __name__ == "__main__":
-    # Standard run command: python backend/main.py
-    # From root: python -m uvicorn backend.main:app --reload
-    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True)
+    # Standard run command: python api/main.py
+    # From root: python -m uvicorn api.main:app --reload
+    uvicorn.run("api.main:app", host="127.0.0.1", port=8000, reload=True)

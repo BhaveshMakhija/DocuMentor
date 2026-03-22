@@ -1,0 +1,20 @@
+{
+    "baseline": {
+        "version": "Baseline",
+        "metrics": {
+            "faithfulness": 0.78,
+            "answer_relevancy": 0.85,
+            "context_precision": 0.72
+        },
+        "timestamp": "2026-03-22T11:45:10"
+    },
+    "improved": {
+        "version": "With Reranking",
+        "metrics": {
+            "faithfulness": 0.87,
+            "answer_relevancy": 0.91,
+            "context_precision": 0.84
+        },
+        "timestamp": "2026-03-22T11:48:32"
+    }
+}

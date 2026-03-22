@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
@@ -10,15 +10,21 @@ import {
   Terminal,
   CheckCircle,
   Database,
-  Cpu
+  Cpu,
+  FileText,
+  Calendar
 } from 'lucide-react';
-import { queryBackend, ingestDocument } from '../services/api';
+import { queryBackend, ingestDocument, fetchDocuments } from '../services/api';
 import RAGVisualizer from '../components/RAGVisualizer';
-import CitationList from '../components/CitationList';
+import AnswerDisplay from '../components/AnswerDisplay';
+import EvaluationDashboard from '../components/EvaluationDashboard';
 
 const Home = () => {
     const [query, setQuery] = useState('');
-    const [result, setResult] = useState(null);
+    const [result, setResult] = useState(() => {
+        const saved = localStorage.getItem('last_rag_result');
+        return saved ? JSON.parse(saved) : null;
+    });
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState('idle');
     const [error, setError] = useState('');
@@ -26,8 +32,31 @@ const Home = () => {
     const [activeTab, setActiveTab] = useState('chat');
     const [uploading, setUploading] = useState(false);
     const [uploadSuccess, setUploadSuccess] = useState('');
+    const [documents, setDocuments] = useState([]);
     
     const fileInputRef = useRef(null);
+
+    // Persist result
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('last_rag_result', JSON.stringify(result));
+        }
+    }, [result]);
+
+    useEffect(() => {
+        if (activeTab === 'documents') {
+            loadDocuments();
+        }
+    }, [activeTab]);
+
+    const loadDocuments = async () => {
+        try {
+            const docs = await fetchDocuments();
+            setDocuments(docs);
+        } catch (err) {
+            console.error("Failed to load documents:", err);
+        }
+    };
 
     const handleSearch = async (e) => {
         if (e) e.preventDefault();
@@ -67,6 +96,7 @@ const Home = () => {
         try {
             await ingestDocument(file);
             setUploadSuccess(`Successfully ingested: ${file.name}`);
+            loadDocuments(); 
             setTimeout(() => setUploadSuccess(''), 4000);
         } catch (err) {
             setError('Upload failed: ' + err.message);
@@ -180,34 +210,10 @@ const Home = () => {
 
                         <AnimatePresence>
                         {result && !loading && (
-                            <motion.div 
-                            key="answer"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mt-12 answer-box glow-card"
-                            >
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
-                                    <MessageSquare size={16} />
-                                </div>
-                                <h2 className="text-xl font-bold text-gray-100">AI Response</h2>
-                                </div>
-                                <button 
-                                onClick={copyToClipboard}
-                                className="flex items-center gap-2 text-xs font-bold text-zinc-500 hover:text-white transition-colors"
-                                >
-                                {copySuccess ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-                                {copySuccess ? 'Copied' : 'Copy Response'}
-                                </button>
-                            </div>
-
-                            <div className="prose prose-invert max-w-none text-gray-200 leading-relaxed text-lg">
-                                {result.answer}
-                            </div>
-
-                            <CitationList citations={result.citations} />
-                            </motion.div>
+                             <AnswerDisplay 
+                                 answer={result.answer} 
+                                 citations={result.citations} 
+                             />
                         )}
                         </AnimatePresence>
                     </>
@@ -215,34 +221,77 @@ const Home = () => {
 
                 {activeTab === 'documents' && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glow-card p-12">
-                        <h2 className="text-3xl font-bold mb-6">Document Management</h2>
-                        <p className="text-zinc-400 mb-8">Manage your indexed documents and upload new sources.</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="border border-white/10 rounded-2xl p-6 bg-white/5">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h2 className="text-3xl font-bold">Document Management</h2>
+                                <p className="text-zinc-400 mt-2">Manage your persistence layer and monitor indexing.</p>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-blue-400">{documents.length}</div>
+                                    <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Total Files</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-purple-400">
+                                        {documents.reduce((acc, d) => acc + d.chunk_count, 0)}
+                                    </div>
+                                    <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Total Chunks</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Upload Area */}
+                            <div className="lg:col-span-1 border border-white/10 rounded-2xl p-8 bg-white/5 flex flex-col justify-center text-center group hover:border-blue-500/30 transition-all">
+                                <Upload className="mx-auto text-zinc-500 group-hover:text-blue-400 mb-4 transition-colors" size={40} />
                                 <h3 className="font-bold mb-2">Ingest New Data</h3>
-                                <p className="text-xs text-zinc-500 mb-4">Support for PDF and Text files.</p>
-                                <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 transition-all">
-                                    {uploading ? 'Processing...' : 'Choose File'}
+                                <p className="text-xs text-zinc-500 mb-6">PDF, TXT, or MD support.</p>
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()} 
+                                    disabled={uploading}
+                                    className="w-full py-4 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {uploading ? 'Processing...' : <><Upload size={16} /> Choose File</>}
                                 </button>
                             </div>
-                            <div className="border border-white/10 rounded-2xl p-6 bg-white/5 flex flex-col items-center justify-center text-center">
-                                <Database className="text-blue-400 mb-2" size={32} />
-                                <div className="text-2xl font-bold">128</div>
-                                <div className="text-xs text-zinc-500 uppercase tracking-widest">Chunks Indexed</div>
+
+                            {/* Document List */}
+                            <div className="lg:col-span-2 border border-white/10 rounded-2xl bg-black/40 p-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                {documents.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {documents.map((doc, idx) => (
+                                            <div key={idx} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white/[0.08] transition-all">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                                        <FileText size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white">{doc.filename}</div>
+                                                        <div className="flex items-center gap-3 mt-1 text-[10px] text-zinc-500 uppercase tracking-widest">
+                                                            <span className="flex items-center gap-1"><Calendar size={10} /> {doc.date_ingested?.split(' ')[0]}</span>
+                                                            <span className="flex items-center gap-1"><Database size={10} /> {doc.chunk_count} Chunks</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-emerald-500/10 text-emerald-500 text-[9px] font-bold px-2 py-1 rounded-full border border-emerald-500/20 uppercase tracking-widest">
+                                                    Indexed
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-zinc-600 py-12">
+                                        <Database size={40} className="mb-4 opacity-20" />
+                                        <p className="text-xs font-bold uppercase tracking-widest">No documents indexed yet.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.div>
                 )}
 
                 {activeTab === 'evaluation' && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glow-card p-12 text-center">
-                        <Cpu className="mx-auto text-purple-400 mb-4" size={48} />
-                        <h2 className="text-3xl font-bold mb-6">RAG Evaluation</h2>
-                        <p className="text-zinc-400 mb-8">Run RAGAS benchmarks to measure Faithfulness, Relevancy, and Accuracy.</p>
-                        <button className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold hover:scale-105 transition-all">
-                            Start Full Evaluation
-                        </button>
-                    </motion.div>
+                    <EvaluationDashboard />
                 )}
 
                 {activeTab === 'configuration' && (

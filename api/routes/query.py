@@ -5,8 +5,8 @@ import os
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if PROJECT_ROOT not in sys.path: sys.path.append(PROJECT_ROOT)
 
-from backend.models.request_models import QueryRequest, QueryResponse, CitationModel
-from backend.services.generation_service import generate_answer
+from api.models.request_models import QueryRequest, QueryResponse, CitationModel
+from api.services.generation_service import generate_answer
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def query_documents(request: QueryRequest):
             score=c.get("score")
         ) for c in citations]
         # Wrap process info if it exists
-        from backend.models.request_models import RAGProcessInfo
+        from api.models.request_models import RAGProcessInfo
         proc = RAGProcessInfo(**info) if info else None
         return QueryResponse(answer=answer, citations=cit_models, process_info=proc)
     except Exception as e:

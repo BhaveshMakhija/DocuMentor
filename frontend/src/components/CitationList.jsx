@@ -20,13 +20,13 @@ const CitationCard = ({ citation, index }) => {
   };
 
   return (
-    <div className={`mb-4 overflow-hidden rounded-2xl border transition-all ${isOpen ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+    <div className={`mb-4 overflow-hidden rounded-2xl border transition-all ${isOpen ? 'bg-zinc-800 border-zinc-600' : 'bg-zinc-900 border-zinc-700 hover:bg-zinc-800 hover:border-zinc-600'}`}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="w-full text-left px-6 py-4 flex items-center justify-between group"
       >
         <div className="flex items-center gap-4">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isOpen ? 'bg-blue-500' : 'bg-white/5'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isOpen ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' : 'bg-zinc-800 text-zinc-400'}`}>
             <BookOpen size={16} />
           </div>
           <div>
@@ -54,15 +54,15 @@ const CitationCard = ({ citation, index }) => {
             exit={{ height: 0, opacity: 0 }}
             className="px-6 pb-6 pt-2"
           >
-            <div className="p-4 bg-black/40 rounded-xl border border-white/5 text-sm leading-relaxed text-gray-300 relative group">
+            <div className="p-4 bg-black rounded-xl border border-zinc-700 text-sm leading-relaxed text-gray-300 relative group">
               {citation.content}
               <div className="absolute top-2 right-2 flex gap-2">
                  <button 
                    onClick={copyContent}
-                   className="p-1.5 bg-black/50 hover:bg-black/80 rounded transition-all"
+                   className="p-1.5 bg-zinc-800 hover:bg-zinc-700 rounded transition-all"
                    title="Copy snippet"
                  >
-                   {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#666" />}
+                   {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} color="#a1a1aa" />}
                  </button>
               </div>
             </div>

@@ -5,6 +5,8 @@ __pycache__/
 venv/
 env/
 .env
+.env.*
+!*.env.example
 
 # Node / React
 node_modules/
@@ -18,7 +20,6 @@ dist/
 # Databases / Cache
 *.db
 *.sqlite
-data/faiss_index/
 
 # Secrets and API Keys
 configs/keys.json
@@ -28,3 +29,45 @@ keys.json
 # OS files
 .DS_Store
 Thumbs.db
+ehthumbs.db
+
+# Developer tools
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage and Testing
+coverage/
+.pytest_cache/
+htmlcov/
+
+# Logs and Data
+logs/*
+!logs/.gitkeep
+data/*
+!data/.gitkeep
+
+!data/faiss_index/
+data/faiss_index/*
+!data/faiss_index/.gitkeep
+
+!data/source_documents/
+data/source_documents/*
+!data/source_documents/.gitkeep
+
+*.log
+rag_logs.jsonl
+
+# React specific
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+
