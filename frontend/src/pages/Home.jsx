@@ -3,14 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
   Upload, 
-  MessageSquare, 
-  Copy, 
-  Check, 
   AlertCircle,
   Terminal,
   CheckCircle,
   Database,
-  Cpu,
   FileText,
   Calendar,
   Trash2
@@ -29,7 +25,6 @@ const Home = () => {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState('idle');
     const [error, setError] = useState('');
-    const [copySuccess, setCopySuccess] = useState(false);
     const [activeTab, setActiveTab] = useState(() => {
         return localStorage.getItem('active_tab') || 'chat';
     });
@@ -120,13 +115,6 @@ const Home = () => {
         } catch (err) {
             setError('Delete failed: ' + err.message);
         }
-    };
-
-    const copyToClipboard = () => {
-        if (!result?.answer) return;
-        navigator.clipboard.writeText(result.answer);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
     };
 
     return (

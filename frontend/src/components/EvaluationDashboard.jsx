@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BarChart3, 
   ShieldCheck, 
   CheckCircle2, 
   Target, 
-  ArrowUpRight, 
-  Activity, 
   Cpu,
-  RefreshCcw,
   Trash2,
   AlertCircle,
   Loader2

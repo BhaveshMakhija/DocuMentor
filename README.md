@@ -1,101 +1,112 @@
 # 🚀 DocuMentor: Production-Grade RAG with Observability & Evaluation
 
-DocuMentor is a production-level Retrieval-Augmented Generation (RAG) system with a focus on observability, performance tracking, and automated evaluation. It features a complete pipeline with hybrid retrieval, cross-encoder reranking, and a dynamic evaluation system that measures performance on every document ingestion.
+DocuMentor is a state-of-the-art Retrieval-Augmented Generation (RAG) system engineered for transparency, performance, and automated evaluation. It features a complete pipeline with hybrid retrieval, cross-encoder reranking, and a robust background evaluation engine that measures key RAG metrics (Faithfulness, Relevancy, Precision) in real-time.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Modern Architecture
 
 ```mermaid
 graph TD
-    A[User Query] --> B[API Layer - FastAPI]
-    B --> C[Observability - Langfuse Trace]
+    A[React Frontend] -->|HTTP Polling| B[FastAPI Backend]
+    B --> C[Observability - Langfuse / Custom JSONL]
     C --> D[Hybrid Retriever - BM25 + FAISS]
     D --> E{Reranking?}
-    E -- Yes --> F[Cross-Encoder Rerank]
-    E -- No --> G[Raw Retrieval]
-    F --> H[LLM - Llama 3.1 8B]
+    E -- Yes --> F[Cohere Cross-Encoder]
+    E -- No --> G[Raw Hybrid Retrieval]
+    F --> H[LLM - Llama 3.1 8B via Groq]
     G --> H
     H --> I[Answer + Citations]
-    I --> J[Metrics Tracker - SQLite]
-    J --> K[Observability - Langfuse Span End]
+    I --> J[Metrics & Jobs Tracker - SQLite / JSON]
 ```
 
 ---
 
-## 🔥 Key Production Features
+## 🔥 Key Features
 
-### 1. Full-Lifecycle Observability (Langfuse)
-Integrated Langfuse tracing across the entire pipeline. Every step—retrieval, reranking, and generation—is captured as a trace with input/output, latency, and token usage, allowing for deep debugging and monitoring.
+### 1. Dual-Core Observability
+- **Real-Time Logs**: Custom JSONL-based observability stream that feeds the frontend logs panel instantly.
+- **Long-Term Tracing**: (Optional) Langfuse integration for enterprise-grade trace analysis across retrieval and generation spans.
 
-### 2. Metrics & Persistence (SQLite)
-End-to-end metrics tracking:
-* **Latency**: p50 and p95 tracking for every query.
-* **Cost**: Estimated cost per query based on model usage.
-* **Tokens**: Automated input/output token counting.
-All metrics are persisted in a local **SQLite database** (`data/mentor.db`) for long-term trend analysis.
+### 2. Persistent Background Evaluation
+- **Job ID Tracking**: Each benchmark run generates a unique `job_id`. Progress is persisted to disk, allowing users to refresh the page or switch tabs without losing track of long-running evaluations.
+- **RAGAS Benchmarking**: Automated calculation of **Faithfulness**, **Answer Relevancy**, and **Context Precision** using a defensive Groq-safe loop (`n=1`, exponential backoff).
+- **Comparison Engine**: Automatically pits a "Baseline" (no reranking) against an "Improved" (reranking enabled) pipeline to quantify performance gains.
 
-### 3. Fully Dynamic Evaluation System
-No more hardcoded benchmarks. DocuMentor automatically generates a custom evaluation dataset for **every uploaded document**:
-* **Dataset Generation**: Splits documents into chunks and uses LLM (temp=0) to generate factual and reasoning questions.
-* **Automated Benchmarking**: Runs the RAG pipeline twice for every generated question:
-  1. **Baseline**: Reranking DISABLED.
-  2. **Improved**: Reranking ENABLED.
-* **RAGAS Metrics**: Measures **Faithfulness**, **Answer Relevancy**, and **Context Precision** without "fake" scores.
+### 3. High-Fidelity React Dashboard
+- **Live Progress Visualization**: Real-time progress bars and status messages (e.g., *"Executing Baseline..."*, *"Finalizing results..."*).
+- **Metric Deltas**: Clear visual indicators of percentage improvements in RAG quality after applying reranking.
+- **Clean Metrics**: Automated 4-decimal rounding for all dashboard cards and historical tables.
 
-### 4. CI/CD Regression Gating
-GitHub Actions integration ensures that every pull request meets performance standards. If metrics (faithfulness or relevancy) drop by more than **5%** compared to the previous baseline, the build is automatically failed.
-
-### 5. Production Dashboard
-A built-in Streamlit dashboard provides a real-time view of:
-* Aggregated system metrics (Avg Latency, Cost, Total Queries).
-* Historical evaluation trends.
-* Document ingestion status.
+### 4. Advanced RAG Pipeline
+- **Hybrid Search**: Combines keyword-based (BM25) and semantic (FAISS/Embeddings) retrieval.
+- **Citations**: Native support for source-backed answers with clickable document references.
+- **Reranking**: Integrated Cohere Rerank-v3 for precision filtering of retrieved contexts.
 
 ---
 
 ## 🚀 Getting Started
 
 ### 📋 Prerequisites
-* Python 3.10+
-* Groq API Key (LLM & Evaluation)
-* Langfuse Public/Secret Keys (Observability)
-* SQLite (Built-in)
+* **Python 3.11+**
+* **Node.js & npm** (for the frontend)
+* **Groq API Key** (LLM & Evaluation)
+* **Cohere API Key** (Reranking)
 
 ### 🛠️ Installation
 
-1. **Clone and Install:**
+1. **Clone the Project:**
    ```bash
    git clone https://github.com/your-username/DocuMentor.git
    cd DocuMentor
-   pip install -r api/requirements.txt
-   pip install langfuse streamlit pandas datasets ragas watchdog
    ```
 
-2. **Configuration:**
-   Update `config/keys.json` with your credentials:
+2. **Backend Setup:**
+   ```bash
+   # Create and activate venv
+   python -m venv .venv
+   .\.venv\Scripts\activate   # Windows
+   
+   # Install dependencies
+   pip install -r api/requirements.txt
+   ```
+
+3. **Frontend Setup:**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+4. **Configuration:**
+   Create/Update `config/keys.json`:
    ```json
    {
      "GROQ_API_KEY": "gsk_...",
-     "LANGFUSE_PUBLIC_KEY": "pk-lf-...",
-     "LANGFUSE_SECRET_KEY": "sk-lf-...",
-     "LANGFUSE_HOST": "https://cloud.langfuse.com"
+     "COHERE_API_KEY": "..."
    }
    ```
 
-3. **Initialize Database:**
-   ```bash
-   python -m database.db
-   ```
+---
 
-4. **Launch Backend & Dashboard:**
-   ```bash
-   # Run Backend
-   uvicorn api.main:app --host 127.0.0.1 --port 8000
-   
-   # Run Dashboard (New Terminal)
-   streamlit run dashboard/app.py
-   ```
+## 🏃 Running the Application
+
+### Method 1: Split Terminals (Recommended)
+
+**Terminal 1 (Backend):**
+```bash
+uvicorn api.main:app --reload
+```
+
+**Terminal 2 (Frontend):**
+```bash
+cd frontend
+npm start
+```
+
+### Method 2: Accessing the UI
+Once both are running, open your browser to:
+- **Dashboard**: `http://localhost:3000`
+- **Interactive API Docs**: `http://localhost:8000/docs`
 
 ---
 
@@ -103,16 +114,16 @@ A built-in Streamlit dashboard provides a real-time view of:
 
 ```text
 DocuMentor/
-├── api/                # FastAPI routes and middleware
-├── evaluation/         # Dynamic dataset generation and RAGAS evaluator
-├── observability/      # Langfuse tracing integration
-├── metrics/            # Latency and cost tracking system
+├── api/                # Core FastAPI implementation
+│   ├── core/           # RAG logic (Retrieval, Reranking, Generation)
+│   ├── routes/         # API endpoints (Query, Ingest, Monitoring)
+│   └── services/       # Glue code for business logic
+├── frontend/           # React SPA with Tailwind CSS & Framer Motion
+├── evaluation/         # RAGAS benchmark engine & dataset generator
 ├── database/           # SQLite persistence layer
-├── retrieval/          # Hybrid search implementation
-├── reranking/          # Cross-encoder re-ranking logic
-├── indexing/           # Document embedding and indexing
-├── ingestion/          # File parsing and chunking
-└── dashboard/          # Streamlit performance dashboard
+├── data/               # Persistent storage (DB, Vector Index, Jobs, Source Docs)
+├── config/             # Environment & Key management
+└── logs/               # Real-time observability streams
 ```
 
 ---
@@ -120,10 +131,13 @@ DocuMentor/
 ## 🛠️ Tech Stack
 
 * **LLM**: Groq (Llama-3.1-8b-instant)
-* **Observability**: Langfuse
-* **Evaluation**: RAGAS & Custom Dynamic Generator
-* **Database**: SQLite
-* **Reranker**: Cohere or HuggingFace (MiniLM)
-* **Visualization**: Streamlit
-* **CI/CD**: GitHub Actions
+* **Frontend**: React, Tailwind CSS, Lucide, Framer Motion
+* **Backend**: FastAPI, LangChain
+* **Vector Store**: FAISS
+* **Evaluation**: RAGAS & Custom Persistent Job Engine
+* **Database**: SQLite (SQLAlchemy/Aiosqlite)
 
+---
+
+## 📜 License
+MIT © DocuMentor Team
