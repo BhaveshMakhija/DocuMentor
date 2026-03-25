@@ -1,0 +1,30 @@
+name: RAG Evaluation Regression Gating
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+          pip install langfuse pandas datasets ragas langchain-groq langchain-community
+      - name: Run RAG Evaluation (Dynamic)
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        run: |
+          # In a real CI, we'd have a fixed 'golden' dataset for regression testing.
+          # Here we run on the latest doc if available.
+          # For gating, we'll try to run the comparison script.
+          python evaluation/regression_check.py
